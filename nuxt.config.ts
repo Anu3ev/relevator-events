@@ -14,6 +14,11 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/image',
     '@nuxt/scripts',
-    '@nuxtjs/tailwindcss'
-  ]
+    '@nuxtjs/tailwindcss',
+    '@hexdigital/nuxt-datocms'
+  ],
+
+  datocms: {
+    publicReadOnlyToken: process.env.DATOCMS_API_TOKEN
+  }
 })

@@ -20,7 +20,9 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "@hexdigital/nuxt-datocms": "^1.1.5",
     "@nuxt/eslint": "^1.10.0",
+    "@types/node": "^24.10.1",
     "eslint": "^9.39.1"
   }
 }
