@@ -1,5 +1,15 @@
 <template>
   <div class="min-h-full bg-black text-white">
+    <HeroSection>
+      <template #title>
+        Hero Title
+      </template>
+      <template #subtitle>
+        Dive into the Rhythm Report for deep insights, emerging trends, and exclusive interviews shaping the future of
+        music and rights management.
+      </template>
+    </HeroSection>
+
     {{ events }}
   </div>
 </template>
