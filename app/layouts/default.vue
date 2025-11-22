@@ -1,9 +1,7 @@
 <template>
   <div class="h-screen flex flex-col">
-    <!-- Header -->
-    <div>My Header</div>
+    <Header />
 
-    <!-- Main Content -->
     <main class="flex-1">
       <slot />
     </main>
