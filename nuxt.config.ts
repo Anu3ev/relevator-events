@@ -7,7 +7,12 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'PPMori', provider: 'local' }
+      {
+        name: 'PP Mori',
+        provider: 'local',
+        global: true,
+        weights: ['400', '450', '500', '600']
+      }
     ]
   },
 
