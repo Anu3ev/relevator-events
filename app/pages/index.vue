@@ -10,8 +10,8 @@
     </HeroSection>
 
     <!-- Events Section -->
-    <section class="flex flex-col mx-auto w-full pt-20 gap-8">
-      <h2 class="text-5xl font-semibold">Grid Title</h2>
+    <section v-if="events.length" class="flex flex-col mx-auto w-full py-20 gap-8">
+      <h2 class="text-5xl font-semibold">{{ eventsSection?.title }}</h2>
 
       <!-- Error State -->
       <div v-if="error" class="text-center text-red-400">
@@ -22,10 +22,10 @@
 
       <!-- Events Grid -->
       <template v-else>
-        {{ events }}
+        <EventGrid :events="events" />
 
         <!-- Load More Button -->
-        <div v-if="hasMore" class="mt-8 flex justify-center">
+        <div v-if="hasMore" class="flex justify-center">
           <BaseButton
             variant="secondary"
             size="sm"
@@ -34,11 +34,6 @@
           >
             {{ loadingMore ? 'Loading...' : 'Load More' }}
           </BaseButton>
-        </div>
-
-        <!-- No More Events Message -->
-        <div v-else-if="events.length > 0" class="text-center text-gray-400">
-          <p class="text-body">No more events to load</p>
         </div>
       </template>
     </section>
@@ -50,6 +45,7 @@ const {
   heroSection,
   seo,
   eventsPerPage,
+  eventsSection,
   eventsOrder,
   homeError
 } = await useHomePageContent()

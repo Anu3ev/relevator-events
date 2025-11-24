@@ -1,16 +1,4 @@
-interface Image {
-  url: string
-}
-
-export interface Event {
-  id: string
-  title: string
-  slug: string
-  dateAndTime?: string
-  image?: Image
-  tags?: string
-  description?: string
-}
+import type { Event } from '~~/types/event'
 
 interface UseEventsFeedOptions {
   perPage: ComputedRef<number>
@@ -23,7 +11,10 @@ const EVENTS_QUERY = `
       id
       title
       slug
-      description(markdown: true)
+      image {
+        url
+      }
+      description
       dateAndTime
       tags
     }
