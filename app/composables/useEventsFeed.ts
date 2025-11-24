@@ -17,6 +17,13 @@ const EVENTS_QUERY = `
       description
       dateAndTime
       tags
+      participants {
+        name
+        role
+        avatar {
+          url
+        }
+      }
     }
     _allEventsMeta {
       count
