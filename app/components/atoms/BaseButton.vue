@@ -51,8 +51,8 @@ const buttonClasses = computed(() => {
 
   // Variants tuned for both dark and light backgrounds
   const variants = {
-    primary: 'bg-[#433AF8] text-white hover:opacity-90',
-    secondary: 'bg-white/10 text-white border border-white/10 hover:bg-white/20 focus-visible:ring-white/30 focus-visible:ring-offset-black',
+    primary: 'bg-[#433AF8] text-white hover:bg-[#433AF8]/85',
+    secondary: 'bg-white/10 text-white hover:bg-white/15',
     outline: 'border-2 border-black text-black hover:bg-black hover:text-white',
     ghost: 'bg-white text-black hover:bg-gray-100'
   }
