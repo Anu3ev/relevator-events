@@ -1,7 +1,6 @@
 <template>
-  <div class="min-h-screen bg-black text-white flex flex-col pb-20">
+  <div class="min-h-screen bg-black text-white flex flex-col pb-20 px-4 xl:px-0">
     <div class="max-w-7xl mx-auto w-full">
-      <!-- test -->
       <Header />
 
       <main>
