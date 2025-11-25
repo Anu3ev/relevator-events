@@ -32,7 +32,7 @@ const EVENTS_QUERY = `
 `
 
 export const useEventsFeed = async ({ perPage, order }: UseEventsFeedOptions) => {
-  const events = ref<Event[]>([])
+  const events = useState<Event[]>('events-feed', () => [])
   const skip = ref(0)
   const loadingMore = ref(false)
   const hasMore = ref(false)
