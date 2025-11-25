@@ -1,10 +1,10 @@
 <template>
   <NuxtLink
-    :to="`/event/${props.event.slug}`"
+    :to="`/${props.event.slug}`"
     class="block overflow-hidden rounded-3xl p-2 bg-white/10 hover:bg-white/15 transition-colors duration-300"
   >
     <!-- Event Image / Placeholder -->
-    <div class="rounded-t-2xl h-[228px] w-full overflow-hidden bg-[#333333]">
+    <div class="rounded-t-2xl h-[228px] w-full overflow-hidden bg-surface-card">
 
       <NuxtImg
         v-if="props.event.image?.url"
@@ -40,7 +40,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Event } from '~~/types/event'
 
 interface Props {
