@@ -20,12 +20,17 @@ const EVENT_QUERY = `
       }
       description
       tags
+      participantsTitle
       participants {
         name
         role
         avatar {
           url
         }
+      },
+      seo {
+        title
+        description
       }
     }
   }

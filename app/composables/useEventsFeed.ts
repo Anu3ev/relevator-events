@@ -17,12 +17,17 @@ const EVENTS_QUERY = `
       description
       dateAndTime
       tags
+      participantsTitle
       participants {
         name
         role
         avatar {
           url
         }
+      }
+      seo {
+        title
+        description
       }
     }
     _allEventsMeta {

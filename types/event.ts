@@ -16,5 +16,10 @@ export interface Event {
   image?: EventMedia
   description?: string
   tags?: string
+  participantsTitle?: string
   participants?: EventParticipant[]
+  seo?: {
+    title?: string
+    description?: string
+  }
 }

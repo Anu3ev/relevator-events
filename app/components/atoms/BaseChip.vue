@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chipClasses = computed(() => {
-  const base = 'pl-3 pr-4 py-2 text-chip inline-flex items-center justify-center rounded-3xl whitespace-nowrap font-semibold'
+  const base = 'pl-3 pr-4 py-2 h-10 text-chip inline-flex items-center justify-center rounded-3xl whitespace-nowrap font-semibold'
 
   const variants = {
     default: 'bg-white/10',
