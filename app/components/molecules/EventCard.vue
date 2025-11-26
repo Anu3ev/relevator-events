@@ -42,11 +42,9 @@
 <script setup lang="ts">
 import type { Event } from '~~/types/event'
 
-interface Props {
+const props = defineProps<{
   event: Event
-}
-
-const props = defineProps<Props>()
+}>()
 
 const dateParts = computed(() => {
   if (!props.event.dateAndTime) return null

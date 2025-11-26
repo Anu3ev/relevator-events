@@ -13,7 +13,7 @@
     </div>
 
     <div v-else class="grid lg:grid-cols-[minmax(0,720px)_minmax(280px,1fr)] gap-20">
-      <section class="flex flex-col gap-12">
+      <section class="flex flex-col gap-12 shadow-[0_0_20px_rgba(0,0,0,0.15)] rounded-xl">
         <div class="flex flex-col items-start gap-8">
           <BaseChip variant="blue">
             Event
@@ -23,7 +23,7 @@
             {{ eventData.title }}
           </h1>
 
-          <p v-if="eventData.description" class="text-xl leading-[34px]">
+          <p v-if="eventData.description" class="text-xl leading-[170%]">
             {{ eventData.description }}
           </p>
 
@@ -47,7 +47,7 @@
           </div>
         </div>
 
-        <figure class="rounded-3xl bg-white/5 border-[0.54px] border-white/10 p-4">
+        <figure class="rounded-3xl bg-white/5 border-[0.54px] border-white/10 p-[8.67px]">
           <div class="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-neutral-800">
             <NuxtImg
               v-if="heroImage"
@@ -64,12 +64,12 @@
           <h2 class="text-participants-header font-semibold">Participants</h2>
         </div>
 
-        <div v-if="participantsLength" class="flex flex-col gap-4">
-          <!-- <ParticipantRow
+        <div v-if="participantsLength" class="flex flex-col gap-2">
+          <ParticipantRow
             v-for="participant in eventData.participants"
             :key="participant.name"
             :participant="participant"
-          /> -->
+          />
         </div>
       </aside>
     </div>

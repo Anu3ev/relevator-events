@@ -25,9 +25,7 @@
 <script setup lang="ts">
 import type { Event } from '~~/types/event'
 
-interface Props {
+withDefaults(defineProps<{
   events: Event[]
-}
-
-withDefaults(defineProps<Props>(), {})
+}>(), {})
 </script>

@@ -14,7 +14,7 @@ import { computed } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
 interface Props {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  variant?: 'primary' | 'secondary'
   size?: 'sm' | 'lg'
   disabled?: boolean
   to?: RouteLocationRaw | null
@@ -47,19 +47,11 @@ const buttonAttrs = computed(() => ({
 }))
 
 const buttonClasses = computed(() => {
-  const base = 'inline-flex items-center justify-center font-semibold transition-all duration-200 rounded-full'
+  const base = 'inline-flex items-center justify-center font-semibold transition-all duration-300 rounded-full px-6 text-btn'
 
-  // Variants tuned for both dark and light backgrounds
   const variants = {
     primary: 'bg-brand-primary text-white hover:bg-brand-primary/85',
-    secondary: 'bg-white/10 text-white hover:bg-white/15',
-    outline: 'border-2 border-black text-black hover:bg-black hover:text-white',
-    ghost: 'bg-white text-black hover:bg-gray-100'
-  }
-
-  const sizes = {
-    sm: 'px-6 text-btn',
-    lg: 'px-6 text-lg leading-12'
+    secondary: 'bg-white/10 text-white hover:bg-white/15'
   }
 
   const disabledClasses = props.disabled
@@ -69,7 +61,6 @@ const buttonClasses = computed(() => {
   return [
     base,
     variants[props.variant],
-    sizes[props.size],
     disabledClasses
   ]
     .filter(Boolean)
