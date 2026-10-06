@@ -14,11 +14,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const chipClasses = computed(() => {
-  const base = 'pl-3 pr-4 py-2 h-10 text-chip inline-flex items-center justify-center rounded-3xl whitespace-nowrap font-semibold'
+  const base = 'inline-flex min-h-10 max-w-full items-center justify-center rounded-3xl px-4 py-2 text-chip font-semibold whitespace-normal [overflow-wrap:anywhere]'
 
   const variants = {
     default: 'bg-white/10',
-    blue: 'pl-4 bg-brand-accent text-black'
+    blue: 'bg-brand-accent text-black'
   }
 
   return [base, variants[props.variant]].join(' ')

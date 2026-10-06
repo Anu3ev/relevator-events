@@ -1,43 +1,15 @@
-import { resolve } from 'node:path'
-
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
-
+  compatibilityDate: '2025-11-01',
+  devtools: { enabled: false },
   fonts: {
-    families: [
-      {
-        name: 'PP Mori',
-        provider: 'local',
-        global: true,
-        weights: ['400', '450', '500', '600']
-      }
-    ]
+    families: [{ name: 'PP Mori', provider: 'local', global: true, weights: ['400', '450', '500', '600'] }]
   },
-
-  modules: [
-    '@nuxt/eslint',
-    '@nuxt/fonts',
-    '@nuxt/image',
-    '@nuxt/scripts',
-    '@nuxtjs/tailwindcss',
-    '@hexdigital/nuxt-datocms'
-  ],
-
-  alias: {
-    // Force all datocms-listen imports to the ESM build shipped at the project root
-    'datocms-listen': resolve(process.cwd(), 'node_modules/datocms-listen/dist/esm/index.js')
+  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/image', '@nuxtjs/tailwindcss'],
+  components: [{ path: '~/components', pathPrefix: false }],
+  runtimeConfig: {
+    datocmsToken: process.env.DATOCMS_API_TOKEN || '',
+    datocmsEnvironment: process.env.DATOCMS_ENVIRONMENT || 'main',
+    demoMode: false
   },
-
-  components: [
-    {
-      path: '~/components',
-      pathPrefix: false
-    }
-  ],
-
-  datocms: {
-    publicReadOnlyToken: process.env.DATOCMS_API_TOKEN,
-    environment: process.env.DATOCMS_ENVIRONMENT || 'main'
-  }
+  app: { head: { htmlAttrs: { lang: 'en' } } }
 })

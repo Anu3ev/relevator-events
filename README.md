@@ -1,48 +1,35 @@
-## Relevator Events
+# Relevator Events
 
-This project is a Nuxt 4 app that showcases events curated in DatoCMS. It renders a hero section, a paginated feed, and dynamic event detail pages, all styled with Tailwind CSS utilities and the PP Mori font family.
+A Nuxt 4 / Vue 3 / TypeScript event directory built as a Relevator frontend test assignment. Browse a paginated feed, open event details, and return without losing loaded events. DatoCMS provides published content; Tailwind CSS handles the responsive UI.
 
-Tech stack: Nuxt 4, TypeScript, Tailwind CSS, DatoCMS.
+[Live demo](https://relevator-test-l8qu.vercel.app/) · The hosted version may lag behind this branch.
 
-**Requirements**
-- Node.js 20 or newer (Nuxt 4 officially supports Active LTS and Current releases).
-- A readonly DatoCMS API token scoped to query the necessary models.
+## Run
 
-### How the app is structured
-- `app/pages` holds route-driven views. `index.vue` renders the hero and feed, while `[slug].vue` handles an event detail view with graceful 404 handling.
-- `app/components` follows the Atomic Design tiers (atoms -> molecules -> organisms) so UI pieces stay reusable. Examples: `BaseChip`, `EventGrid`, `ParticipantRow`.
-- `app/composables` contains typed GraphQL hooks such as `useHomePageContent`, `useEventsFeed`, and `useEventDetail`. They hide the query strings, state management, and caching logic.
-- `types` centralizes shared TypeScript contracts like `Event`, so pages and composables agree on the schema returned by DatoCMS.
-- Styling comes from Tailwind (configured in `tailwind.config.ts`).
+Use Node 24 (`nvm use`), then:
 
-### Getting started
-1. **Clone and install**
-   ```bash
-   git clone git@github.com:Anu3ev/relevator-test.git
-   cd relevator-test
-   npm install
-   ```
-2. **Configure environment**
-   - Create a `.env` file (or export vars in your shell).
-   - Set `DATOCMS_API_TOKEN=<your-readonly-token>`.
-   - Optionally set `DATOCMS_ENVIRONMENT=<environment-name>` if you use non-default environments.
-3. **Run the dev server**
-   ```bash
-   npm run dev
-   ```
-   The site boots at `http://localhost:3000`.
-4. **Production build**
-   ```bash
-   npm run build && npm run preview
-   ```
+```sh
+npm ci
+cp .env.example .env
+npm run dev
+```
 
-### Notable decisions
-- **Data lives in composables**: All DatoCMS queries sit in dedicated composables so both pages and future components can reuse them without duplicating GraphQL strings.
-- **Optimistic caching**: `useEventDetail` first checks `useState('events-feed')`. If a visitor clicks an event from the list we reuse the already downloaded payload and avoid another network call.
-- **Guarded navigation**: The `[slug]` page watches the async state, throws a Nuxt `createError` when nothing is found, and keeps the UI consistent with the home page error handling.
-- **SEO friendly head management**: Both pages call `useHead` to inject per-page titles and descriptions that come straight from the CMS.
+Open http://localhost:3000. The example enables a labelled, fictional 25-event dataset, so no CMS account is needed. All displayed times use UTC on both server and browser.
 
-### Future improvements
-- Cache GraphQL responses inside Nuxt server routes or API handlers (for example `server/api/events.ts`) using `cachedEventHandler`, Nitro storage, or edge caches so repeat visits avoid re-fetching identical payloads from DatoCMS.
-- Prefetch event detail data while a card is visible or hovered by enabling `<NuxtLink prefetch>` or calling `prefetchRoute` so client-side navigations feel instant by having the data ready before the user navigates.
-- If the content is mostly read-heavy, add route rules to statically prerender the home page and each `/[slug]` route and optionally revalidate them through CMS webhooks so the CDN can serve most traffic without cold starts.
+For real content, set `NUXT_DEMO_MODE=false` and `DATOCMS_API_TOKEN` to a read-only DatoCMS Content Delivery token; optionally set `DATOCMS_ENVIRONMENT` (default `main`). The token stays on the server. Never use a management token. The required models and fields are defined by the queries in `server/utils/cms-queries.ts`.
+
+## Check and build
+
+```sh
+npm run check                 # lint, TypeScript, unit tests
+npx playwright install chromium
+npm run test:e2e               # builds and tests the fixture app
+npm run build
+npm run preview
+```
+
+Browser tests cover pagination and Back/Forward, direct URLs, UTC hydration, loading/empty/error/retry states, 404 recovery, and narrow screens. CI runs the same checks without CMS credentials.
+
+`app/` contains pages, components, and browser state; `server/api/` contains validated, read-only CMS endpoints; `shared/` contains demo fixtures and query validation.
+
+The original exercise branding and bundled PP Mori fonts are retained. No license is declared; check the relevant permissions before reuse or redistribution.
