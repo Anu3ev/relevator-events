@@ -2,36 +2,90 @@
 
 <img width="1899" height="890" alt="image" src="https://github.com/user-attachments/assets/e9de5000-ba47-479e-bed7-b95392a3c2b1" />
 
-A Nuxt 4 / Vue 3 / TypeScript event directory built as a Relevator frontend test assignment. Browse a paginated feed, open event details, and return without losing loaded events. DatoCMS provides published content; Tailwind CSS handles the responsive UI.
+An event directory built with Nuxt 4, Vue 3, and TypeScript. Content comes from DatoCMS through GraphQL, with a paginated feed and individual event pages.
 
-[Live demo](https://relevator-test-l8qu.vercel.app/) · The hosted version may lag behind this branch.
+Built as a frontend test assignment for Relevator, covering the event UI, CMS integration, and route-driven browsing.
 
-## Run
+**[Open the live demo](https://relevator-test-l8qu.vercel.app/)**
 
-Use Node 24 (`nvm use`), then:
+## What you can try
 
-```sh
+- Browse events and use **Load more** to append another page
+- Open an event to read its description, date, tags, and participant information
+- Open an event URL directly or refresh its detail page
+- Return to the directory without losing loaded events
+
+Event times are displayed in UTC. The bundled local demo contains 25 fictional events and requires no CMS account.
+
+## Stack and structure
+
+- **Nuxt 4 / Vue 3:** server-rendered pages and slug-based routing
+- **TypeScript:** shared event contracts and typed composables
+- **Tailwind CSS 3:** styling and responsive layouts
+- **DatoCMS:** published GraphQL content through server-side API routes
+- **Vercel:** demo hosting
+
+`app/pages` contains the home and event-detail routes. Reusable UI lives in `app/components`, grouped into atoms, molecules, and organisms. `app/composables` owns homepage content, feed pagination, and event lookup; `types/event.ts` defines the shared event shape.
+
+`server/api` handles validated, read-only CMS requests. Event details reuse complete records already in the feed cache before requesting a slug directly. Both routes set page titles and descriptions from CMS data.
+
+## Run locally
+
+### Requirements
+
+- Node.js 24 and npm; `.nvmrc` specifies the Node version
+- For CMS mode only: a matching DatoCMS project, published records, and a read-only Content Delivery API token
+
+### Installation
+
+```bash
+git clone https://github.com/Anu3ev/relevator-events.git
+cd relevator-events
 npm ci
 cp .env.example .env
 npm run dev
 ```
 
-Open http://localhost:3000. The example enables a labelled, fictional 25-event dataset, so no CMS account is needed. All displayed times use UTC on both server and browser.
+Open http://localhost:3000. The example environment enables `NUXT_DEMO_MODE=true`, using the fictional dataset in `shared/demo.ts`.
 
-For real content, set `NUXT_DEMO_MODE=false` and `DATOCMS_API_TOKEN` to a read-only DatoCMS Content Delivery token; optionally set `DATOCMS_ENVIRONMENT` (default `main`). The token stays on the server. Never use a management token. The required models and fields are defined by the queries in `server/utils/cms-queries.ts`.
+### CMS content
 
-## Check and build
+To use DatoCMS, update `.env`:
 
-```sh
-npm run check                 # lint, TypeScript, unit tests
-npx playwright install chromium
-npm run test:e2e               # builds and tests the fixture app
-npm run build
-npm run preview
+```dotenv
+NUXT_DEMO_MODE=false
+DATOCMS_API_TOKEN=your_read_only_content_delivery_token
+DATOCMS_ENVIRONMENT=main
 ```
 
-Browser tests cover pagination and Back/Forward, direct URLs, UTC hydration, loading/empty/error/retry states, 404 recovery, and narrow screens. CI runs the same checks without CMS credentials.
+`DATOCMS_ENVIRONMENT` is optional and defaults to `main`. The token stays on the server. Never use a management token or commit credentials.
 
-`app/` contains pages, components, and browser state; `server/api/` contains validated, read-only CMS endpoints; `shared/` contains demo fixtures and query validation.
+The schema must match [the GraphQL queries](server/utils/cms-queries.ts):
 
-The original exercise branding and bundled PP Mori fonts are retained. No license is declared; check the relevant permissions before reuse or redistribution.
+- `homePage` with SEO data and `hero_section` / `events_section` content blocks
+- `allEvents` and `_allEventsMeta` for pagination and ordering
+- An `event` lookup by unique `slug`
+
+Events include a title, slug, date/time, image, description, tags, participants, and SEO fields. Participants include a name, role, and avatar. Use the queries as the exact field reference; a token alone is insufficient if the schema differs.
+
+### Commands
+
+```bash
+npm run dev       # Development server
+npm run build     # Production build
+npm run preview   # Preview the production build locally
+```
+
+## Verification
+
+```bash
+npm run check     # Lint, TypeScript, and unit tests
+npx playwright install chromium
+npm run test:e2e   # Builds and tests the local demo
+```
+
+CI runs these checks without CMS credentials. Tests cover pagination, Back/Forward navigation, direct URLs, UTC rendering, loading and recovery states, and narrow screens.
+
+## Attribution and license
+
+The repository includes Relevator branding and PP Mori font files. No license is declared; check the applicable rights before reusing or redistributing the code and assets.
