@@ -1,5 +1,7 @@
 # Relevator Events
 
+<img width="1899" height="890" alt="image" src="https://github.com/user-attachments/assets/e9de5000-ba47-479e-bed7-b95392a3c2b1" />
+
 A Nuxt 4 / Vue 3 / TypeScript event directory built as a Relevator frontend test assignment. Browse a paginated feed, open event details, and return without losing loaded events. DatoCMS provides published content; Tailwind CSS handles the responsive UI.
 
 [Live demo](https://relevator-test-l8qu.vercel.app/) · The hosted version may lag behind this branch.
