@@ -49,6 +49,8 @@ const props = defineProps<{
 }>()
 
 const imageFailed = ref(false)
-watch(() => props.event.image?.url, () => { imageFailed.value = false })
+watch(() => props.event.image?.url, () => {
+  imageFailed.value = false
+})
 const dateParts = computed(() => formatEventDate(props.event.dateAndTime))
 </script>

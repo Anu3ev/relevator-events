@@ -335,3 +335,19 @@ test('API rejects invalid pagination and order before reading content', async ({
   const slug = await request.get('/api/events/bad%20slug')
   expect(slug.status()).toBe(400)
 })
+
+test('unsupported CMS feed settings fall back to a valid event query', async ({ page, request }) => {
+  await openDetail(page, request)
+  await page.route(/\/api\/home(?:\?.*)?$/, route => fulfillJSON(route, {
+    homePage: {
+      content: [{ _modelApiKey: 'events_section', title: 'Events', limit: 1000, order: 'unsupported' }],
+    },
+  }))
+  const feedRequest = page.waitForRequest(request => feedURL.test(request.url()))
+  await returnToFeed(page)
+  const query = new URL((await feedRequest).url()).searchParams
+  expect(query.get('first')).toBe('100')
+  expect(query.get('order')).toBe('dateAndTime_ASC')
+  await expectUniqueCards(page, 25)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Discover music events')
+})

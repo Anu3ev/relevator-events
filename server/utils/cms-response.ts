@@ -1,5 +1,5 @@
 import type { Event, EventMedia, EventParticipant } from '../../types/event'
-import type { ContentBlock, EventData, EventsData, HomePageData, SeoBlock } from '../../types/cms'
+import type { ContentBlock, EventData, EventsData, HomePageData } from '../../types/cms'
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid CMS response')
@@ -19,7 +19,7 @@ function media(value: unknown): EventMedia | undefined {
   return value == null ? undefined : { url: requiredString(record(value).url) }
 }
 
-function seo(value: unknown): SeoBlock | undefined {
+function seo(value: unknown): Event['seo'] {
   if (value == null) return undefined
   const item = record(value)
   return { title: optionalString(item.title), description: optionalString(item.description) }
@@ -33,7 +33,6 @@ function participant(value: unknown): EventParticipant {
 function event(value: unknown): Event {
   const item = record(value)
   if (item.participants != null && !Array.isArray(item.participants)) throw new Error('Invalid CMS response')
-  const metadata = seo(item.seo)
   return {
     id: requiredString(item.id),
     title: requiredString(item.title),
@@ -44,7 +43,7 @@ function event(value: unknown): Event {
     tags: optionalString(item.tags),
     participantsTitle: optionalString(item.participantsTitle),
     participants: Array.isArray(item.participants) ? item.participants.map(participant) : undefined,
-    seo: metadata ? { title: metadata.title ?? undefined, description: metadata.description ?? undefined } : undefined
+    seo: seo(item.seo)
   }
 }
 

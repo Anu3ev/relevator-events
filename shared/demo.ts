@@ -74,7 +74,10 @@ export function getDemoEvents({ first, skip, order }: EventsQuery): EventsData {
   const ordered = [...demoEvents].sort((left, right) => {
     const a = left[field] ?? ''
     const b = right[field] ?? ''
-    return direction * (a < b ? -1 : a > b ? 1 : 0)
+    if (a < b) return -direction
+    if (a > b) return direction
+
+    return 0
   })
   return {
     allEvents: structuredClone(ordered.slice(skip, skip + first)),

@@ -10,13 +10,17 @@ interface GraphQLRequest<T> {
   query: string
   variables?: Record<string, unknown>
   readData: (value: unknown) => T
+  fetcher?: typeof fetch
 }
 
 /** Server-only transport: never accept a destination, token, or query from a client. */
-export async function queryDatoCms<T>(
-  { config, query, variables = {}, readData }: GraphQLRequest<T>,
-  fetcher: typeof fetch = globalThis.fetch
-): Promise<T> {
+export async function queryDatoCms<T>({
+  config,
+  query,
+  variables = {},
+  readData,
+  fetcher = globalThis.fetch
+}: GraphQLRequest<T>): Promise<T> {
   const token = typeof config.datocmsToken === 'string' ? config.datocmsToken.trim() : ''
   if (!token) {
     throw createError({ statusCode: 503, statusMessage: 'Content service is not configured. Set DATOCMS_API_TOKEN or enable demo mode.' })
@@ -51,9 +55,11 @@ export async function queryDatoCms<T>(
   } catch {
     // Upstream bodies/errors can contain credentials, queries, and schema internals.
     // Do not attach a cause, raw response, or original error to the public H3 error.
-    throw createError(controller.signal.aborted
-      ? { statusCode: 504, statusMessage: 'Content service timed out. Please try again.' }
-      : { statusCode: 502, statusMessage: 'Content service is temporarily unavailable. Please try again.' })
+    if (controller.signal.aborted) {
+      throw createError({ statusCode: 504, statusMessage: 'Content service timed out. Please try again.' })
+    }
+
+    throw createError({ statusCode: 502, statusMessage: 'Content service is temporarily unavailable. Please try again.' })
   } finally {
     clearTimeout(timeout)
   }

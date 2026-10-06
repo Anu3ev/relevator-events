@@ -31,6 +31,14 @@ const props = defineProps<{
 }>()
 
 const imageFailed = ref(false)
-watch(() => props.participant.avatar?.url, () => { imageFailed.value = false })
-const initials = computed(() => props.participant.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase())
+watch(() => props.participant.avatar?.url, () => {
+  imageFailed.value = false
+})
+const initials = computed(() => props.participant.name
+  .trim()
+  .split(/\s+/)
+  .slice(0, 2)
+  .map(part => part[0])
+  .join('')
+  .toUpperCase())
 </script>

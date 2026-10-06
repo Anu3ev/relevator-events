@@ -100,7 +100,7 @@ test('CMS nullable fields normalize to existing Event types while malformed shap
 
 test('GraphQL transport uses the fixed official endpoint and private published-only headers', async () => {
   const variables = { first: 12, skip: 0, order: ['dateAndTime_ASC'] }
-  const result = await queryDatoCms({ ...request, variables }, async (url, init) => {
+  const result = await queryDatoCms({ ...request, variables, fetcher: async (url, init) => {
     assert.equal(url, 'https://graphql.datocms.com/')
     assert.equal(init.method, 'POST')
     assert.equal(init.redirect, 'error')
@@ -110,15 +110,15 @@ test('GraphQL transport uses the fixed official endpoint and private published-o
     assert.deepEqual(JSON.parse(init.body), { query: EVENTS_QUERY, variables })
     assert.ok(init.signal instanceof AbortSignal)
     return json({ data: emptyEvents })
-  })
+  } })
   assert.deepEqual(result, emptyEvents)
 })
 
 test('missing token returns a sanitized 503 and never attempts network or demo fallback', async () => {
   for (const datocmsToken of ['', '   ', undefined]) {
-    await assert.rejects(queryDatoCms({ ...request, config: { datocmsToken } }, () => {
+    await assert.rejects(queryDatoCms({ ...request, config: { datocmsToken }, fetcher: () => {
       assert.fail('No network call is allowed without a token')
-    }), assertPublicError(503))
+    } }), assertPublicError(503))
   }
 })
 
@@ -133,7 +133,7 @@ test('HTTP, network, GraphQL, invalid JSON and invalid data errors are sanitized
     async () => json({ errors: null }),
     async () => json([])
   ]
-  for (const fetcher of responses) await assert.rejects(queryDatoCms(request, fetcher), assertPublicError(502))
+  for (const fetcher of responses) await assert.rejects(queryDatoCms({ ...request, fetcher }), assertPublicError(502))
 })
 
 test('transport distinguishes a bounded timeout without exposing the original error', async (t) => {
@@ -142,12 +142,12 @@ test('transport distinguishes a bounded timeout without exposing the original er
     return 1
   })
   t.mock.method(globalThis, 'clearTimeout', () => {})
-  await assert.rejects(queryDatoCms(request, async (_url, init) => new Promise((_resolve, reject) => {
+  await assert.rejects(queryDatoCms({ ...request, fetcher: async (_url, init) => new Promise((_resolve, reject) => {
     init.signal.addEventListener('abort', () => reject(new Error('fictional-test-secret')), { once: true })
-  })), assertPublicError(504))
+  }) }), assertPublicError(504))
 })
 
 test('the detail query uses variables and preserves a real CMS not-found result', async () => {
   assert.match(EVENT_QUERY, /\$slug: String!/) // Slugs are never interpolated into GraphQL source.
-  assert.deepEqual(await queryDatoCms({ config, query: EVENT_QUERY, variables: { slug: 'missing' }, readData: readEventData }, async () => json({ data: { event: null } })), { event: null })
+  assert.deepEqual(await queryDatoCms({ config, query: EVENT_QUERY, variables: { slug: 'missing' }, readData: readEventData, fetcher: async () => json({ data: { event: null } }) }), { event: null })
 })

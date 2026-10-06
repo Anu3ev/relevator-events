@@ -34,12 +34,19 @@ const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
 
-const isLink = computed(() => !!props.to)
+const isLink = computed(() => Boolean(props.to))
 // Disabled links have no navigation target, including through keyboard activation.
-const buttonComponent = computed(() => isLink.value ? (props.disabled ? 'span' : NuxtLink) : 'button')
-const linkAttrs = computed(() => props.disabled
-  ? { role: 'link', 'aria-disabled': 'true' as const }
-  : { to: props.to })
+const buttonComponent = computed(() => {
+  if (!isLink.value) return 'button'
+  if (props.disabled) return 'span'
+
+  return NuxtLink
+})
+const linkAttrs = computed(() => {
+  if (props.disabled) return { role: 'link', 'aria-disabled': 'true' as const }
+
+  return { to: props.to }
+})
 
 const buttonAttrs = computed(() => ({
   type: props.type,
