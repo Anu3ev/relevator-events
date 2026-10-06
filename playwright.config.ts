@@ -33,7 +33,8 @@ export default defineConfig({
     timeout: 180_000,
     env: {
       NUXT_DEMO_MODE: 'true',
-      NUXT_DATOCMS_TOKEN: '',
+      // Synthetic server-only value lets SSR tests detect accidental credential exposure.
+      NUXT_DATOCMS_TOKEN: 'e2e-private-cms-token-never-expose',
       DATOCMS_API_TOKEN: '',
       PORT: String(port),
       HOST: '127.0.0.1',
