@@ -1,6 +1,6 @@
 <template>
   <component
-    :is="isLink ? 'NuxtLink' : 'button'"
+    :is="buttonComponent"
     v-bind="isLink ? linkAttrs : buttonAttrs"
     :class="buttonClasses"
     @click="handleClick"
@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { NuxtLink } from '#components'
 import type { RouteLocationRaw } from 'vue-router'
 
 interface Props {
@@ -33,13 +34,19 @@ const emit = defineEmits<{
   (e: 'click', event: MouseEvent): void
 }>()
 
-const isLink = computed(() => !!props.to)
+const isLink = computed(() => Boolean(props.to))
+// Disabled links have no navigation target, including through keyboard activation.
+const buttonComponent = computed(() => {
+  if (!isLink.value) return 'button'
+  if (props.disabled) return 'span'
 
-const linkAttrs = computed(() => ({
-  to: props.to,
-  'aria-disabled': props.disabled ? 'true' : undefined,
-  tabindex: props.disabled ? -1 : undefined
-}))
+  return NuxtLink
+})
+const linkAttrs = computed(() => {
+  if (props.disabled) return { role: 'link', 'aria-disabled': 'true' as const }
+
+  return { to: props.to }
+})
 
 const buttonAttrs = computed(() => ({
   type: props.type,
@@ -47,24 +54,24 @@ const buttonAttrs = computed(() => ({
 }))
 
 const buttonClasses = computed(() => {
-  const base = 'inline-flex items-center justify-center font-semibold transition-all duration-300 rounded-full px-6 text-btn'
+  const base = 'inline-flex max-w-full items-center justify-center rounded-full text-center font-semibold transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white'
 
   const variants = {
     primary: 'bg-brand-primary text-white hover:bg-brand-primary/85',
     secondary: 'bg-white/10 text-white hover:bg-white/15'
   }
 
-  const disabledClasses = props.disabled
-    ? 'opacity-60 cursor-not-allowed pointer-events-none'
-    : 'cursor-pointer'
+  const sizes = {
+    sm: 'min-h-11 px-6 py-2.5 text-[15px] leading-5',
+    lg: 'min-h-14 px-8 py-3.5 text-base leading-6'
+  }
 
   return [
     base,
     variants[props.variant],
-    disabledClasses
-  ]
-    .filter(Boolean)
-    .join(' ')
+    sizes[props.size],
+    props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+  ].join(' ')
 })
 
 const handleClick = (event: MouseEvent) => {

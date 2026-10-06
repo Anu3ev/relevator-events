@@ -1,71 +1,21 @@
 import type { Event } from '~~/types/event'
+import type { EventData } from '~~/types/cms'
 
-interface UseEventDetailOptions {
-  slug: string
-}
+/** Reuse a complete feed record before requesting a directly opened event. */
+export const useEventDetail = async ({ slug }: { slug: string }) => {
+  const events = useState<Event[]>('events-feed', () => [])
+  const asyncData = await useAsyncData<EventData>(`event-${slug}`, (_app, { signal }) => {
+    const cachedEvent = events.value.find(event => event.slug === slug)
+    if (cachedEvent) return Promise.resolve({ event: cachedEvent })
 
-interface EventData {
-  event: Event | null
-}
-
-const EVENT_QUERY = `
-  query EventBySlug($slug: String!) {
-    event(filter: { slug: { eq: $slug } }) {
-      id
-      title
-      slug
-      dateAndTime
-      image {
-        url
-      }
-      description
-      tags
-      participantsTitle
-      participants {
-        name
-        role
-        avatar {
-          url
-        }
-      },
-      seo {
-        title
-        description
-      }
-    }
-  }
-`
-
-export const useEventDetail = async ({ slug }: UseEventDetailOptions) => {
-  const eventsCache = useState<Event[]>('events-feed', () => [])
-  const cachedEvent = computed(() =>
-    eventsCache.value.find((evt) => evt.slug === slug)
-  )
-
-  const asyncData = await useAsyncData<EventData>(`event-${slug}`, async () => {
-    if (cachedEvent.value) {
-      return { event: cachedEvent.value }
-    }
-
-    const { data } = await useDatoCms({
-      query: EVENT_QUERY,
-      variables: {
-        slug
-      }
-    })
-
-    return (data.value as EventData) ?? { event: null }
-  })
-
-  const event = computed(
-    () =>
-      cachedEvent.value ??
-      ((asyncData.data.value as EventData | null)?.event ?? null)
-  )
+    return $fetch(`/api/events/${encodeURIComponent(slug)}`, { retry: 0, signal })
+  }, { lazy: true })
 
   return {
-    ...asyncData,
-    event
+    event: computed(() => asyncData.data.value?.event ?? null),
+    pending: asyncData.pending,
+    error: asyncData.error,
+    status: asyncData.status,
+    refresh: asyncData.refresh
   }
 }
-

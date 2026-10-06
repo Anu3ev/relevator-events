@@ -1,78 +1,48 @@
-interface HeroSectionBlock {
-  _modelApiKey: 'hero_section'
-  title?: string
-  subtitle?: string
-}
+import type { HomePageData } from '~~/types/cms'
+import { DEFAULT_EVENTS_LIMIT, DEFAULT_EVENTS_ORDER, MAX_EVENTS_LIMIT, isEventOrder } from '~~/shared/cms'
 
-interface EventsSectionBlock {
-  _modelApiKey: 'events_section'
-  title?: string
-  limit?: number
-  order?: string
-}
-
-interface SeoBlock {
-  title?: string
-  description?: string
-}
-
-type ContentBlock = EventsSectionBlock | HeroSectionBlock
-
-const DEFAULT_EVENTS_LIMIT = 12
-const DEFAULT_EVENTS_ORDER = 'dateAndTime_ASC'
-
-const HOME_PAGE_QUERY = `
-  query HomePage {
-    homePage {
-      content {
-        ... on EventsSectionRecord {
-          _modelApiKey
-          title
-          limit
-          order
-        }
-        ... on HeroSectionRecord {
-          _modelApiKey
-          title
-          subtitle
-        }
-      }
-      seo {
-        title
-        description
-      }
-    }
-  }
-`
-
+/** Read CMS presentation settings with useful defaults when content is missing. */
 export const useHomePageContent = async () => {
-  const { data, error } = await useAsyncDatoCms({
-    query: HOME_PAGE_QUERY
+  const { data } = await useAsyncData<HomePageData>('home-page', (_app, { signal }) => {
+    return $fetch('/api/home', { retry: 0, signal })
+  })
+  const blocks = computed(() => data.value?.homePage?.content ?? [])
+  const heroSection = computed(() => blocks.value.find(block => block._modelApiKey === 'hero_section'))
+  const eventsSection = computed(() => blocks.value.find(block => block._modelApiKey === 'events_section'))
+  const placeholderHero = computed(() => {
+    const title = heroSection.value?.title?.trim()
+    return !title || /^hero title$/i.test(title)
   })
 
-  const sections = computed(() => {
-    const blocks = (data.value?.homePage?.content as ContentBlock[] | undefined) ?? []
+  const heroTitle = computed(() => {
+    if (placeholderHero.value) return 'Discover music events'
 
-    return blocks.reduce<{ hero?: HeroSectionBlock; events?: EventsSectionBlock }>((acc, block) => {
-      if (!acc.hero && block._modelApiKey === 'hero_section') acc.hero = block as HeroSectionBlock
-      if (!acc.events && block._modelApiKey === 'events_section') acc.events = block as EventsSectionBlock
-      return acc
-    }, {})
+    return heroSection.value?.title
   })
+  const heroSubtitle = computed(() => {
+    if (placeholderHero.value) {
+      return 'Explore conversations, workshops and live sessions from the music community.'
+    }
 
-  const heroSection = computed(() => sections.value.hero ?? null)
-  const eventsSection = computed(() => sections.value.events ?? null)
-  const seo = computed(() => data.value?.homePage?.seo as SeoBlock | undefined)
+    return heroSection.value?.subtitle || 'Explore events from the music community.'
+  })
+  const eventsTitle = computed(() => {
+    const title = eventsSection.value?.title?.trim()
+    if (!title || /^grid title$/i.test(title)) return 'Explore events'
 
-  const eventsPerPage = computed(() => eventsSection.value?.limit ?? DEFAULT_EVENTS_LIMIT)
-  const eventsOrder = computed(() => eventsSection.value?.order ?? DEFAULT_EVENTS_ORDER)
+    return title
+  })
+  const eventsPerPage = computed(() => {
+    const limit = eventsSection.value?.limit || DEFAULT_EVENTS_LIMIT
+    return Math.min(MAX_EVENTS_LIMIT, Math.max(1, limit))
+  })
+  const eventsOrder = computed(() => {
+    const order = eventsSection.value?.order
+    if (isEventOrder(order)) return order
 
-  return {
-    heroSection,
-    eventsSection,
-    seo,
-    eventsPerPage,
-    eventsOrder,
-    homeError: error
-  }
+    return DEFAULT_EVENTS_ORDER
+  })
+  const seo = computed(() => data.value?.homePage?.seo)
+
+  return { heroTitle, heroSubtitle, eventsTitle, eventsPerPage, eventsOrder, seo }
 }

@@ -1,83 +1,74 @@
 <template>
-  <div class="pt-[88px]">
-    <section
-      v-if="error || !eventData"
-      class="mx-auto mt-12 flex max-w-3xl flex-col items-center gap-8 rounded-3xl border border-white/10 bg-white/5 px-10 py-16 text-center shadow-[0_0_20px_rgba(0,0,0,0.15)]"
+  <div class="pt-10 sm:pt-16">
+    <NuxtLink
+      to="/#events"
+      aria-label="Back to events"
+      class="mb-8 inline-flex rounded text-sm text-brand-accent underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
     >
-      <div class="space-y-4">
-        <h1 class="text-event-title font-semibold">
-          Event Not Found
-        </h1>
-        <p class="text-lg text-white/70">
-          Sorry, we couldn't find the event you're looking for right now.
-        </p>
-      </div>
-      <BaseButton variant="secondary" size="sm" to="/">
-        Back to Events
-      </BaseButton>
+      ← Back to events
+    </NuxtLink>
+    <p v-if="pending" role="status" class="py-16 text-center">Loading event...</p>
+    <section
+      v-else-if="error"
+      role="alert"
+      class="mx-auto flex max-w-3xl flex-col items-center gap-6 rounded-3xl border border-white/10 bg-white/5 px-6 py-12 text-center"
+    >
+      <h1 class="text-3xl font-semibold sm:text-5xl">Could not load this event</h1>
+      <p class="text-white/75">Please try again in a moment.</p>
+      <BaseButton variant="secondary" @click="refresh()">Try again</BaseButton>
     </section>
-
-    <div v-else class="grid lg:grid-cols-[minmax(0,720px)_minmax(280px,1fr)] gap-20">
-      <section class="flex flex-col gap-12 shadow-[0_0_20px_rgba(0,0,0,0.15)] rounded-xl">
-        <div class="flex flex-col items-start gap-8">
-          <div v-if="tags.length" class="flex gap-3">
-            <BaseChip v-for="tag in tags" :key="tag" variant="blue">
-              {{ tag }}
-            </BaseChip>
+    <div v-else-if="event" class="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-16">
+      <section class="flex min-w-0 flex-col gap-10">
+        <div class="flex min-w-0 flex-col items-start gap-6">
+          <div v-if="tags.length" class="flex max-w-full flex-wrap gap-3">
+            <BaseChip v-for="tag in tags" :key="tag" variant="blue">{{ tag }}</BaseChip>
           </div>
-
-
-          <h1 class="text-event-title font-semibold">
-            {{ eventData.title }}
+          <h1 class="max-w-full break-words text-4xl font-semibold leading-tight sm:text-6xl lg:text-7xl">
+            {{ event.title }}
           </h1>
-
-          <p v-if="eventData.description" class="text-xl leading-[170%]">
-            {{ eventData.description }}
+          <p v-if="event.description" class="max-w-full whitespace-pre-line break-words text-lg leading-relaxed sm:text-xl">
+            {{ event.description }}
           </p>
-
-          <div
-            v-if="formattedDate"
-            class="flex items-center gap-4 text-sm leading-none"
-          >
-            <BaseChip v-if="formattedDate">
-              <span class="inline-flex items-center gap-4">
+          <div v-if="dateParts" class="flex max-w-full flex-wrap items-center gap-3 text-sm">
+            <BaseChip>
+              <span class="inline-flex items-center gap-3">
                 <IconCalendar />
-                <span>{{ formattedDate }}</span>
+                <span>{{ dateParts.date }}</span>
               </span>
             </BaseChip>
-
-            <BaseChip v-if="formattedTime">
-              <span class="inline-flex items-center gap-4">
+            <BaseChip>
+              <span class="inline-flex items-center gap-3">
                 <IconClock />
-                <span>{{ formattedTime }}</span>
+                <span>{{ dateParts.time }}</span>
               </span>
             </BaseChip>
           </div>
         </div>
-
-        <figure class="rounded-3xl bg-white/5 border-[0.54px] border-white/10 p-[8.67px]">
+        <figure class="rounded-3xl border border-white/10 bg-white/5 p-2">
           <div class="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-neutral-800">
             <NuxtImg
-              v-if="heroImage"
-              :src="heroImage"
-              :alt="eventData.title"
+              v-if="event.image?.url && !imageFailed"
+              :src="event.image.url"
+              :alt="event.title"
               class="h-full w-full object-cover"
+              @error="imageFailed = true"
             />
+            <EventArtwork v-else :seed="event.slug" />
           </div>
         </figure>
       </section>
-
-      <aside class="flex flex-col gap-8">
-        <div class="flex items-center justify-between">
-          <h2 class="text-participants-header font-semibold">
-            {{ eventData.participantsTitle }}
-          </h2>
-        </div>
-
-        <div v-if="participantsLength" class="flex flex-col gap-2">
+      <aside
+        v-if="event.participants?.length"
+        class="flex min-w-0 flex-col gap-6"
+        aria-labelledby="participants-heading"
+      >
+        <h2 id="participants-heading" class="break-words text-3xl font-semibold">
+          {{ event.participantsTitle || 'Participants' }}
+        </h2>
+        <div class="flex flex-col gap-3">
           <ParticipantRow
-            v-for="participant in eventData.participants"
-            :key="participant.name"
+            v-for="(participant, index) in event.participants"
+            :key="`${participant.name}-${index}`"
             :participant="participant"
           />
         </div>
@@ -87,75 +78,32 @@
 </template>
 
 <script setup lang="ts">
+import { formatEventDate } from '~/utils/eventDate'
+
+definePageMeta({ key: route => route.fullPath })
+
 const route = useRoute()
-
-const { event, pending, error } = await useEventDetail({
-  slug: route.params.slug as string
+const { event, pending, error, status, refresh } = await useEventDetail({
+  slug: String(route.params.slug)
 })
+const imageFailed = ref(false)
+const tags = computed(() => event.value?.tags?.split(',').map(tag => tag.trim()).filter(Boolean) ?? [])
+const dateParts = computed(() => formatEventDate(event.value?.dateAndTime))
 
-const eventData = computed(() => event.value ?? null)
-const heroImage = computed(() => {
-  const { value: currentEvent } = eventData
-  return currentEvent?.image?.url ?? ''
+watch(() => event.value?.image?.url, () => {
+  imageFailed.value = false
 })
+watch([status, event], () => {
+  if (status.value !== 'success' || event.value) return
 
-const tags = computed(() => {
-  return eventData.value?.tags?.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) ?? []
-})
+  showError({ statusCode: 404, statusMessage: 'Event not found' })
+}, { immediate: true })
 
-const seo = computed(() => {
-  return eventData.value?.seo ?? null
-})
-
-const participantsLength = computed(() => {
-  return eventData.value?.participants?.length ?? 0
-})
-
-const formattedDate = computed(() => {
-  const { value: currentEvent } = eventData
-  if (!currentEvent?.dateAndTime) return ''
-  const date = new Date(currentEvent.dateAndTime)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date)
-})
-const formattedTime = computed(() => {
-  const { value: currentEvent } = eventData
-  if (!currentEvent?.dateAndTime) return ''
-  const date = new Date(currentEvent.dateAndTime)
-  return new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    timeZoneName: 'short'
-  }).format(date)
-})
-
-watchEffect(() => {
-  const { value: isPending } = pending
-  const { value: hasError } = error
-  const { value: currentEvent } = event
-
-  if (isPending || hasError || currentEvent) return
-
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'Event Not Found',
-    fatal: true
-  })
-})
-
-useHead(() => {
-  const { value: currentEvent } = event
-
-  return {
-    title: seo.value?.title || currentEvent?.title,
-    meta: [
-      {
-        name: 'description',
-        content: seo.value?.description || currentEvent?.description
-      }
-    ]
-  }
-})
+useHead(() => ({
+  title: event.value?.seo?.title || event.value?.title || 'Event | Relevator',
+  meta: [{
+    name: 'description',
+    content: event.value?.seo?.description || event.value?.description || 'Explore events with Relevator.'
+  }]
+}))
 </script>
